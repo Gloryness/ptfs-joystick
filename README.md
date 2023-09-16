@@ -22,5 +22,60 @@ The rest of the day went like this:
   - BUT DO NOT FEAR! FOR **[pydirectinput](https://github.com/learncodebygaming/pydirectinput)** IS HERE!
     - It's a fork of pyautogui, however supports DirectX mouse movements. Perfect! It works!
 - 20:40 - Successfully made mouse movements react to my joystick. WOOHOO!
-- 21:00 - Around here I was probably implementing gound VS airborne state.
+- 21:00 - Around here I was probably implementing ground VS airborne state.
   - Airborne for full joystick and rudder control, and ground for only rudder control - with this being a toggleable mode by a button on my joystick.
+- 21:30 - Gear toggle, Altitude Hold aka Autopilot, Flaps integration
+- 22:00 - Twin-Engine and Single-Engine support. Will indicate engine start failure if knob is not set to IGN/START.
+- 22:30 - Throttle control. If one throttle is MAX and the other is IDLE for a Twin-Engine, the result throttle is 50%. For a single engine, only the first throttle lever is taken into account. Not the second one.
+- 23:00 - Reverse thrust for pushback.
+- 23:59 - First fully integrated test flight using a joystick and throttle.
+  - This test flight went seemingly well from taxi and takeoff to landing. I noticed a few things I could improve, especially throttle. I had it set to IDLE however it was showing 2% on screen.
+  - As of here, throttle control was determined by holding down the "w" key for 0.033s which equals 1% throttle increase/decrease.
+  - And no. It's not as simple as `for i in range(100): pydirectinput.press("w", _pause=False)`. It's too slow. Even with `_pause=False`.
+
+### 13th September 2023
+Today, I figured of a new idea I could do. Usually an aircraft taxies under its own power. Why should I need to increase throttle to taxi?<br/>
+This is where my parking brake idea came to light.
+
+I figured I'll implement it so if the parking brake is OFF (and the engines are on), the aircraft with increase its own throttle automatically to 15%, for taxi.
+
+And if the parking brake is ON, a -15% throttle deduction is in place. Meaning throttle can manually be increased to 15%, it will do nothing. 16%, and it will go to 1%.
+
+With pushback and parking brake ON, the maximum pushback speed is 8% (1 knot).<br/>
+With pushback and parking brake OFF, the maximum pushback speed is 32% (10 knots)
+
+Later that day, at around 20:00, I did a test flight.<br/>
+Spoiler: Didn't work! Throttle never even increased in the first place, however the parking brake still worked (meaning I could taxi, but not takeoff with increased throttle).
+
+Obviously a logic error somewhere in the code, however, this wasn't really what I was concerned about.
+
+Since I set the taxispeed with parking brake OFF to 15%, I expected it to be at 15%.. but it wasn't!<br/>
+I stopped the test flight, and went back to throttle testing. I then ran a "w" key press for 0.033 * 15 seconds. Should be 15% throttle right? Nope! It was 18%.<br/>
+I then ran a key press for 0.033 * 90 seconds. Should be.. 93% throttle then? Nope! It was 90%. **I was pretty bamboozled at this point.**
+
+After this, I spent the next hour messing around with throttle and adjusting the 1% throttle increase duration (0.033s).
+
+### 14th September 2023
+During the course of today, I spent ways I could improve throttle control.<br/>
+A thought that came to my mind is set up a script that detects a "w" key press and instantly starts a stopwatch, with no time.sleep inbetween prints (meaning it's basically printing every 0.001s.<br/>
+With this script, I could then set up OBS to capture the script output and also Roblox at the same time as I increase my throttle from 1% to 100%.<br/>
+This way I have millisecond precision for how long it takes to get to each throttle, from 1% to 100%.
+
+I could then analyze this by using video editing software to view EACH frame.<br/>
+I ended up with Adobe Express, since it's free and easy to use for what I want to do, which is simply view frames.
+
+I then spent essentially the rest of this day analyzing each frame and logging the amount of time it takes to get to 1% throttle, 2% throttle, 3% throttle, all the way up to 30% throttle.
+
+I also noticed that no matter how much I altered the millisecond duration, for some throttle percentages, it simply wasn't accurate (1% throttle difference, mostly).<br/>
+This is when I knew, I'd need not only this system - but another system backed up ontop of this system, to get the throttle 100% ACCURATE.
+
+**Template Matching.** This is what I knew I'd need to accurately control this throttle system.<br/>
+I know this will take a long time though to setup (all the templates), however it'll hopefully in the long run be worth it.
+
+I then did some research on libaries I can use for screenshotting certain parts of a screen.<br/>
+I then stumbled across **[pyscreenshot](https://github.com/ponty/pyscreenshot)**, which worked perfectly.<br/>
+I then figured out the monitor coordinates for the throttle box in PTFS.
+
+### 15th September 2023, jesus christ finally it's Friday that took ages
+Nothing majorly interesting today. I didn't have that much time to work on continuing the throttle improvements.<br/>
+However, I was able to continue covering millisecond throttle durations from throttles 30% to 50%. Halfway point!
