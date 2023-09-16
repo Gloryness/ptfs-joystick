@@ -79,3 +79,14 @@ I then figured out the monitor coordinates for the throttle box in PTFS.
 ### 15th September 2023, jesus christ finally it's Friday that took ages
 Nothing majorly interesting today. I didn't have that much time to work on continuing the throttle improvements.<br/>
 However, I was able to continue covering millisecond throttle durations from throttles 30% to 50%. Halfway point!
+
+### 16th September 2023
+YAY. Finally finished logging the rest of the exact millisecond durations from throttles 50% to 100%.
+
+So now I've done that, I'll worry about implementation later (even though I'm slightly worrying because obviously windows isn't a real-time operating system.. nothing is ever 100% precise).
+
+Now I'm moving onto template matching.<br/>
+Firstly, I wanted to make sure I was actually getting the screenshot of the throttle area the fastest way - since I remember reading a TLDR to use Pillow instead of pyscreenshot.. on the pyscreenshot github.
+
+So I timed both `pyscreenshot.grab` and `PIL.ImageGrab`, and it turns out `pyscreenshot.grab` computes at 0.17s speed whereas `PIL.ImageGrab` computes at 0.03s speed.<br/>
+Obviously I'm going to be moving over to PIL from now on.
