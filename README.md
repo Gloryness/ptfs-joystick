@@ -90,3 +90,13 @@ Firstly, I wanted to make sure I was actually getting the screenshot of the thro
 
 So I timed both `pyscreenshot.grab` and `PIL.ImageGrab`, and it turns out `pyscreenshot.grab` computes at 0.17s speed whereas `PIL.ImageGrab` computes at 0.03s speed.<br/>
 Obviously I'm going to be moving over to PIL from now on.
+
+After doing extensive testing, I have settled with using adaptive thresholding to capture the white text that shows the throttle value. Normal thresholding simply didn't produce promising results.
+
+Also.. turns out there's an even faster way to capture a part of a screen.<br/>
+The **[mss](https://github.com/BoboTiG/python-mss)** module, which I've used to record my screen and focus on the throttle area and apply adaptive thresholding to it, so I can visually see how it changes depending on the background.
+
+After many parameter modifications, I settled with this:
+```
+thresh = cv.adaptiveThreshold(npimg, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 5, -40)
+```
