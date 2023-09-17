@@ -83,7 +83,7 @@ However, I was able to continue covering millisecond throttle durations from thr
 ### 16th September 2023
 YAY. Finally finished logging the rest of the exact millisecond durations from throttles 50% to 100%.
 
-So now I've done that, I'll worry about implementation later (even though I'm slightly worrying because obviously windows isn't a real-time operating system.. nothing is ever 100% precise).
+So now I've done that, I'll worry about implementation later.
 
 Now I'm moving onto template matching.<br/>
 Firstly, I wanted to make sure I was actually getting the screenshot of the throttle area the fastest way - since I remember reading a TLDR to use Pillow instead of pyscreenshot.. on the pyscreenshot github.
@@ -98,5 +98,55 @@ The **[mss](https://github.com/BoboTiG/python-mss)** module, which I've used to 
 
 After many parameter modifications, I settled with this:
 ```py
-thresh = cv.adaptiveThreshold(npimg, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 5, -40)
+thresh = cv.adaptiveThreshold(npimg, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 9, -40)
 ```
+
+### 17th September 2023
+Soo.. I've applied thresholding. OK. Now I need the throttle VALUE.
+
+I asked chatgpt what I was trying to do, and it recommended I use **[pytesseract](https://github.com/madmaze/pytesseract)** which uses Google's tesseract OCR technology.<br/>
+I tried it out, and it could detect simply throttle values like "100%" however values like "97%" it straight up didn't detect and the same with all values less than 10.<br/>
+So tesseract is going to be a no, since it's unreliable.
+
+I then moved a idea of my own, "template matching" but it's not using `cv.matchTemplate` since the template and the orignal image are going to be the exact same dimensions with the exact same threshold applied.
+
+I then created templates for throttle values 0% to 100% and kept them inside a templates folder.
+
+Instead, I'd use a `cv.bitwise_xor` operation between the template and the on-screen image to get the amount of non-matching pixels between the two images.<br/>
+The idea of this is, I will loop through each template and perform the XOR operation on the on-screen image and then store the amount of **non-zero values** it had.
+
+The template that has the LEAST amount of non-zero values, AKA the LEAST amount of difference between the template and the on-screen image, would be the throttle value.
+
+I then tested this, and to my surprised and utter RELIEF, IT WORKS! I can now detect the throttle value from simply ON SCREEN PIXELS.
+
+I then RUSHED EAGERLY to implement this into my main code.<br/>
+But first, remember the exact millisecond durations for each throttle value? Yep, that hasn't disappeared. Still need that.<br/>
+
+The throttle increase/decrease system in my main script will work like this:<br/>
+- Hold down "w" key.
+- Wait for exact millisecond duration using `event.wait` (`threading.Event`)
+  - During this, it should break anytime if a new throttle value is needed.
+    - For example, I set throttle to 10%. During the throttle change, I change it to 15%. That's when it should break.
+  - If it does break, then it grabs the CURRENT throttle value using the thresholding technique.
+  - It will then re-do this process, but for the new throttle value.
+- Release "w" key.
+
+For this, I need a way to interrupt a `event.wait` operation for when holding down the "w" key and a new throttle value appears.<br/>
+I went to stack overflow, and found that using the following code structure will work.
+```py
+# main thread
+while not event.is_set()
+  event.wait(60)
+  break
+event.clear() # clean-up code, allowing the event object to be used again.
+
+# other thread
+event.set() # will break the event.wait()
+```
+
+Excellent! I now implemented this in the main code.<br/>
+I had another idea after I finished doing this. Spoilers! What to do with them??<br/>
+Well, I set the maximum pushback value to 32%, because that's the maximum pushback speed on the ground.
+
+With the spoilers, I will fill the gap from 32% to 100% but ONLY when airborne and in reverse thrust mode.<br/>
+With the spoilers without reverse thrust, throttle will be reduced by 10% (if spoilers are at 100%).
