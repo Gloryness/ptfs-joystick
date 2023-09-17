@@ -97,6 +97,6 @@ Also.. turns out there's an even faster way to capture a part of a screen.<br/>
 The **[mss](https://github.com/BoboTiG/python-mss)** module, which I've used to record my screen and focus on the throttle area and apply adaptive thresholding to it, so I can visually see how it changes depending on the background.
 
 After many parameter modifications, I settled with this:
-```
+```py
 thresh = cv.adaptiveThreshold(npimg, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 5, -40)
 ```
