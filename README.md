@@ -151,4 +151,13 @@ Well, I set the maximum pushback value to 32%, because that's the maximum pushba
 With the spoilers, I will fill the gap from 32% to 100% but ONLY when airborne and in reverse thrust mode.<br/>
 With the spoilers without reverse thrust, throttle will be reduced by 10% (if spoilers are at 100%).
 
-After this, it was basically me testing out the controls on an aircraft and fixing any bugs that occured (a few occured).
+After this, it was basically me testing out the controls on an aircraft and fixing any bugs that occured (a few occured).<br/>
+
+### September 21st 2023
+After numerous days of playing around with this tool I made, I decided I wanted **MORE POWER**.<br/>
+Camera control with the joystick!
+
+Pretty straight forward to implement, however `pydirectinput` didn't have a scroll function so I used `pyautogui` instead, which luckily worked just fine.<br/>
+I implemented an external camera toggle, and also a way to move the camera in the cockpit aswell.
+
+Not too shabby if I do say so myself.
