@@ -1,6 +1,23 @@
 # ptfs-joystick
 A project dedicated for the Throttlemaster Airbus Edition Captain Pack that lets you control PTFS (Pilot Training Flight Simulator) using no other than the joystick aswell as the throttle, along with other features.
 
+[![Release](https://img.shields.io/github/v/release/Gloryness/ptfs-joystick)](https://github.com/Gloryness/ptfs-joystick/releases)
+[![Downloads](https://img.shields.io/github/downloads/Gloryness/ptfs-joystick/total)](https://github.com/Gloryness/ptfs-joystick/releases)
+
+**You can download the latest release ZIP [here](https://github.com/Gloryness/hypixel-goal-tracker/releases)**<br/>
+It's the source code & template folder bundled into a .zip folder.
+
+# Requirements
+- Python 3.8
+- Modules (install with pip):
+  - `python-mss`
+  - `numpy`
+  - `opencv-python`
+  - `colorama`
+  - `pyautogui`
+  - `pydirectinput`
+  - `pyglet`
+
 # The journey
 ### 11th September 2023
 This is the day I got the Throttlemaster Airbus Edition Captain Pack. Later that day I was playing PTFS and stumbled across a thought of "maybe I could make it work with PTFS"
