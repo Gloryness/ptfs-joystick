@@ -4,7 +4,7 @@ A project dedicated for the Throttlemaster Airbus Edition Captain Pack that lets
 [![Release](https://img.shields.io/github/v/release/Gloryness/ptfs-joystick)](https://github.com/Gloryness/ptfs-joystick/releases)
 [![Downloads](https://img.shields.io/github/downloads/Gloryness/ptfs-joystick/total)](https://github.com/Gloryness/ptfs-joystick/releases)
 
-**You can download the latest release ZIP [here](https://github.com/Gloryness/hypixel-goal-tracker/releases)**<br/>
+**You can download the latest release ZIP [here](https://github.com/Gloryness/ptfs-joystick/releases)**<br/>
 It's the source code & template folder bundled into a .zip folder.
 
 # Requirements
