@@ -54,7 +54,7 @@ The rest of the day went like this:
 Today, I figured of a new idea I could do. Usually an aircraft taxies under its own power. Why should I need to increase throttle to taxi?<br/>
 This is where my parking brake idea came to light.
 
-I figured I'll implement it so if the parking brake is OFF (and the engines are on), the aircraft with increase its own throttle automatically to 15%, for taxi.
+I figured I'll implement it so if the parking brake is OFF (and the engines are on), the aircraft will increase its own throttle automatically to 15%, for taxi.
 
 And if the parking brake is ON, a -15% throttle deduction is in place. Meaning throttle can manually be increased to 15%, it will do nothing. 16%, and it will go to 1%.
 
