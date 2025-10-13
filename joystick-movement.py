@@ -44,7 +44,7 @@ y = default_y
 joystick_name = "T.A320 Copilot"
 quadrant_name = "TCA Q-Eng 1&2"
 state = "Ground"
-ground_rudder = "Rudder"
+ground_rudder = "Joystick"
 current_flap_configuration = 0
 current_spoiler_configuration = 0
 throttle_1_percentage = 0
@@ -70,6 +70,7 @@ Jets:
 ############################################################
 max_ground_taxi = 15
 throttle_detents = [50, 80, 100]
+# throttle_detents = [35, 60, 100]
 ############################################################
 
 needed_throttle = 0
@@ -81,13 +82,14 @@ twin_engine = True
 pushback = False
 parking_brake = True
 
+stop_event = threading.Event()
 third_event = threading.Event()
 secondary_event = threading.Event()
 event = threading.Event()
 
 def camera_thread():
     global camera_hat
-    while True:
+    while not stop_event.is_set():
         if camera_hat != (0, 0):
             pydirectinput.mouseDown(button="right", _pause=False)
             value1 = 5 if camera_hat[0] == 1 else -5 if camera_hat[0] == -1 else 0
@@ -106,7 +108,7 @@ def camera_thread():
 
 def throttle_thread():
     global current_throttle, pushback
-    while True:
+    while not stop_event.is_set():
         if (not twin_engine) or (twin_engine and all(engines)):
             if needed_throttle >= 0: # Forward Thrust
 
@@ -515,12 +517,27 @@ def on_joyaxis_motion(joystick, axis, value):
 
 @joystick.event
 def on_joybutton_press(joystick, button):
-    global ground_rudder, state, autopilot, external, camera
+    global ground_rudder, state, autopilot, external, camera, camera_hat, needed_throttle
     if button == 0: # Switch between Rudder control on the ground (ONLY) and airborne mode meaning full joystick rotation & rudder control.
         if state == "Airborne":
             state = "Ground"
         else:
             state = "Airborne"
+
+        if state == "Ground":
+            if parking_brake:
+                if needed_throttle > max_ground_taxi:
+                    needed_throttle -= max_ground_taxi
+                elif needed_throttle >= 0:
+                    needed_throttle = 0
+                elif needed_throttle < 0:
+                    needed_throttle = -round((8 / 100) * abs(needed_throttle))
+            else:
+                if needed_throttle >= 0 and needed_throttle <= max_ground_taxi:
+                    needed_throttle = max_ground_taxi
+                elif needed_throttle < 0:
+                    needed_throttle = -round((32 / 100) * abs(needed_throttle))
+
         print(f"{BLUE}Switching to aircraft control state: {MAGENTA}{state}{RESET}")
     elif button == 1:
         if ground_rudder == "Rudder":
@@ -532,6 +549,7 @@ def on_joybutton_press(joystick, button):
         if external:
             external = False
             camera = False
+            camera_hat = (0, 0)
             for i in range(7):
                 pyautogui.scroll(777, _pause=False)
                 third_event.wait(0.1)
@@ -558,18 +576,13 @@ def on_joybutton_press(joystick, button):
 @joystick.event
 def on_joyhat_motion(joystick, hat_x, hat_y):
     global camera, camera_hat
-    camera = True
-    if hat_x == 0 and hat_y == 0 and external is False:
-        camera = False
-        pydirectinput.mouseUp(button="right", _pause=False)
-        return
-    elif hat_x == 0 and hat_y == 0 and external is True:
-        pydirectinput.mouseDown(button="right", _pause=False)
-        third_event.wait(0.1)
-    elif external is False:
-        pydirectinput.mouseDown(button="right", _pause=False)
+    if external is True:
+        camera = True
+        if hat_x == 0 and hat_y == 0:
+            camera = False
+            pydirectinput.mouseDown(button="right", _pause=False)
 
-    camera_hat = (hat_x, hat_y)
+        camera_hat = (hat_x, hat_y)
 
 @joystick.event
 def on_joyaxis_motion(joystick, axis, value):
@@ -669,4 +682,11 @@ thread.start()
 cam_thread = threading.Thread(target=camera_thread)
 cam_thread.start()
 
-pyglet.app.run()
+try:
+    pyglet.app.run()
+except KeyboardInterrupt:
+    print("\nKeyboardInterrupt received — exiting cleanly...")
+    stop_event.set()
+    thread.join()
+    cam_thread.join()
+    pyglet.app.exit()
