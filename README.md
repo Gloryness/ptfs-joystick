@@ -8,8 +8,8 @@ A project dedicated for the Throttlemaster Airbus Edition Captain Pack that lets
 It's the source code & template folder bundled into a .zip folder.
 
 # Requirements
-- Python 3.8
-- Modules (install with pip):
+- [Python 3.8.2](https://www.python.org/downloads/release/python-382/)
+- Modules (install with pip - `pip install [module_name]`):
   - `python-mss`
   - `numpy`
   - `opencv-python`
@@ -17,6 +17,32 @@ It's the source code & template folder bundled into a .zip folder.
   - `pyautogui`
   - `pydirectinput`
   - `pyglet`
+
+# HOW DO I USE THIS?
+Great question. I'll do my best to explain it:
+
+## Joystick
+- The joystick has three axises: left/right, forward/backward, and the Rudder axis (twist it left/right).
+  - By default, it will use the left/right axis for when taxiing on the ground.
+  - You change it to Rudder mode by pressing the rectangular button on the top of the joystick, where the finger is. (May be glitchy, but works.)
+- Aircraft State: By default it's set to a **Ground** state. This limits throttle to a certain % for taxiing and allows only horizontal joystick control.
+  - Change to **Airborne** mode by pressing the elongated switch where the finger is.
+- Autopilot: The red button - press this to activate **Altitude Hold**. This is all it does.
+- External Camera: Yep, I have implemented this to the best of my ability- press the circular button opposite to where the Autopilot button is, and then use the centre knob to rotate around the aircraft. Press again to disable.
+
+## Throttle Quadrant
+- Parking Brake: Only works in **Ground** state, set it to ON and it will stick and ensure throttle is 0%.
+- Landing Gear: Self-explanatory, this will simply press G to put landing gear up/down.
+- Twin-engine state: The small black rectangular button below ENG1 switch - press this to alternate between a twin-engine state. This way, you only use one throttle and engine start using ENG1 only. By default twin-engine state is Enabled.
+- Flaps: Use this to modify flap configuration, it simply presses Y & H.
+- Spoilers: Yes, this does do something! It will deduct a small % from the currently set throttle amount.
+- Ignition Switch: Set to IGN/Start before attempting to turn on the engines.
+- Engine 1&2 Switch: Activates throttle control for Throttle 1 & 2 respectively.
+- Throttle: Both throttles work intertwined - if you push only Throttle 1 to 100% and are in a Twin-engine state, the throttle will go to 50% in-game.
+  - Note: Turning off an engine switch mid-flight in a twin-engine state will reduce throttle power by 50%.
+
+## Other
+If you don't like something, e.g. a default setting, the maximum taxi speed on the ground, or the throttle % detents, then you can easily edit this inside `joystick-movement.py`.
 
 # The journey
 ### 11th September 2023
@@ -54,7 +80,7 @@ The rest of the day went like this:
 Today, I figured of a new idea I could do. Usually an aircraft taxies under its own power. Why should I need to increase throttle to taxi?<br/>
 This is where my parking brake idea came to light.
 
-I figured I'll implement it so if the parking brake is OFF (and the engines are on), the aircraft with increase its own throttle automatically to 15%, for taxi.
+I figured I'll implement it so if the parking brake is OFF (and the engines are on), the aircraft will increase its own throttle automatically to 15%, for taxi.
 
 And if the parking brake is ON, a -15% throttle deduction is in place. Meaning throttle can manually be increased to 15%, it will do nothing. 16%, and it will go to 1%.
 
