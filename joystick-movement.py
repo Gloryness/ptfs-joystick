@@ -27,6 +27,11 @@ joysticks = pyglet.input.get_joysticks()
 
 joystick = list(filter(lambda joystick: joystick.device.name == "T.A320 Copilot", joysticks))[0]
 quadrant = list(filter(lambda joystick: joystick.device.name == "TCA Q-Eng 1&2", joysticks))[0]
+try:
+    rudder = list(filter(lambda joystick: joystick.device.name == "Saitek Pro Flight Rudder Pedals", joysticks))[0]
+    rudder.open()
+except:
+    rudder = None
 
 joystick.open()
 quadrant.open()
@@ -69,14 +74,15 @@ Jets:
 
 ############################################################
 max_pushback = 32
-max_ground_taxi = 20
-throttle_detents = [55, 80, 100] # A320
+max_ground_taxi = 19
+throttle_detents = [53, 72, 100] # A320
 # throttle_detents = [52, 80, 100] # A380
-# throttle_detents = [35, 60, 100]
+# throttle_detents = [35, 60, 100] # Jet
 ############################################################
 
 needed_throttle = 0
 current_throttle = 0
+brake_pressure = 0
 ignition = False
 engines = [False, False]
 autopilot = False
@@ -112,10 +118,18 @@ def throttle_thread():
     global current_throttle, pushback
     while not stop_event.is_set():
         if (not twin_engine) or (twin_engine and all(engines)):
-            if needed_throttle >= 0: # Forward Thrust
+            required_throttle = needed_throttle
+            if required_throttle >= 0: # Forward Thrust
 
-                if current_throttle < needed_throttle:
-                    throttle_difference = abs(current_throttle - needed_throttle)
+                if brake_pressure != 0 and state == "Ground": # Brake Pressure
+                    # Maximum throttle reduction 35%.
+                    to_reduce = (35 / 100) * brake_pressure
+                    required_throttle = round(required_throttle - to_reduce)
+                    if required_throttle < 0:
+                        required_throttle = 0
+
+                if current_throttle < required_throttle:
+                    throttle_difference = abs(current_throttle - required_throttle)
                     duration = throttle_precision[throttle_difference]
 
                     event.clear()
@@ -130,8 +144,8 @@ def throttle_thread():
                     current_throttle = get_current_throttle()
                     continue
 
-                if current_throttle > needed_throttle:
-                    throttle_difference = abs(current_throttle - needed_throttle)
+                if current_throttle > required_throttle:
+                    throttle_difference = abs(current_throttle - required_throttle)
                     duration = throttle_precision[throttle_difference]
 
                     event.clear()
@@ -152,15 +166,22 @@ def throttle_thread():
                     secondary_event.wait(0.10)
                     print(f"{WHITE}[{DARK_RED}IMPORTANT{WHITE}] {BRIGHT}{YELLOW}Pushback Disengaged.{RESET}")
 
-            elif needed_throttle < 0: # Reverse Thrust
+            elif required_throttle < 0: # Reverse Thrust
                 if not pushback:
                     pushback = True
                     pydirectinput.press("p", _pause=False)
                     secondary_event.wait(0.10)
                     print(f"{WHITE}[{DARK_RED}IMPORTANT{WHITE}] {BRIGHT}{YELLOW}Pushback Engaged.{RESET}")
 
-                if current_throttle < abs(needed_throttle):
-                    throttle_difference = abs(current_throttle - abs(needed_throttle))
+                if brake_pressure != 0 and state == "Ground": # Brake Pressure
+                    # Maximum throttle reduction 35%.
+                    to_reduce = (35 / 100) * brake_pressure
+                    required_throttle = round(required_throttle + to_reduce)
+                    if required_throttle > 0:
+                        required_throttle = 0
+
+                if current_throttle < abs(required_throttle):
+                    throttle_difference = abs(current_throttle - abs(required_throttle))
                     duration = throttle_precision[throttle_difference]
 
                     event.clear()
@@ -175,8 +196,8 @@ def throttle_thread():
                     current_throttle = get_current_throttle()
                     continue
 
-                if current_throttle > abs(needed_throttle):
-                    throttle_difference = abs(current_throttle - abs(needed_throttle))
+                if current_throttle > abs(required_throttle):
+                    throttle_difference = abs(current_throttle - abs(required_throttle))
                     duration = throttle_precision[throttle_difference]
 
                     event.clear()
@@ -195,6 +216,9 @@ def throttle_thread():
 
 def get_overall_throttle(throttle_1, throttle_2):
     return (throttle_1 + throttle_2) // 2
+
+def get_brake_pressure(brakes_1, brakes_2):
+    return (brakes_1 + brakes_2) / 2
 
 @quadrant.event
 def on_joybutton_press(joystick, button):
@@ -496,7 +520,7 @@ def on_joyaxis_motion(joystick, axis, value):
             elif throttle >= 0:
                 throttle = 0
             elif throttle < 0:
-                throttle = -round((8 / max_pushback) * abs(throttle))
+                throttle = -round((8 / 100) * abs(throttle))
         else:
             if throttle >= 0 and throttle <= max_ground_taxi:
                 throttle = max_ground_taxi
@@ -510,12 +534,58 @@ def on_joyaxis_motion(joystick, axis, value):
         elif throttle < 0:
             pushback_value = max_pushback
 
-            pushback_value += round((68 / 100) * current_spoiler_configuration)
+            pushback_value += round(((100 - max_pushback) / 100) * current_spoiler_configuration)
 
             throttle = -round((pushback_value / 100) * abs(throttle))
 
     event.set()
     needed_throttle = throttle
+
+if rudder is not None:
+    rudder_down = False
+    rudder_up = True
+    brakes_1_percentage = 0
+    brakes_2_percentage = 0
+    @rudder.event
+    def on_joyaxis_motion(joystick, axis, value):
+        global rudder_down, rudder_up, brake_pressure, brakes_1_percentage, brakes_2_percentage
+        if value in [1.5259021896696368e-05, -1.5259021896696368e-05]:
+            value = 0
+
+        value = round(value, 2)
+
+        if axis == "x": # Left Brake
+            value = (value + 1.0)
+            brakes_1_percentage = (value / 2) * 100
+
+            brake_pressure = get_brake_pressure(brakes_1_percentage, brakes_2_percentage)
+
+        elif axis == "y": # Right Brake
+            value = (value + 1.0)
+            brakes_2_percentage = (value / 2) * 100
+
+            brake_pressure = get_brake_pressure(brakes_1_percentage, brakes_2_percentage)
+
+        elif axis == "rz":
+            if -0.1 < value < 0.1:
+                if rudder_up is False:
+                    pydirectinput.keyUp("a", _pause=False)
+                    pydirectinput.keyUp("d", _pause=False)
+                    rudder_up = True
+                    rudder_down = False
+                return
+
+            if value < 0: # Left Rudder
+                if rudder_down is False:
+                    pydirectinput.keyDown("a", _pause=False)
+                    rudder_down = True
+                    rudder_up = False
+
+            elif value > 0: # Right Rudder
+                if rudder_down is False:
+                    pydirectinput.keyDown("d", _pause=False)
+                    rudder_down = True
+                    rudder_up = False
 
 @joystick.event
 def on_joybutton_press(joystick, button):
@@ -627,16 +697,17 @@ def on_joyaxis_motion(joystick, axis, value):
 
                 pydirectinput.moveTo(x, y, _pause=False)
 
-        elif axis == "rz":
-            if value in [1.5259021896696368e-05, -1.5259021896696368e-05]: # Idle
-                pydirectinput.keyUp("a", _pause=False)
-                pydirectinput.keyUp("d", _pause=False)
-
-            elif 0 < value < 1: # Rudder Right
-                pydirectinput.keyDown("d", _pause=False)
-
-            elif -1 < value < 0: # Rudder Left
-                pydirectinput.keyDown("a", _pause=False)
+        # commented this bit out due to i've encountered it to be quite messy, easier to just not use it.
+        # elif rudder is None and axis == "rz": # Only utilise this if no rudder is connected.
+            # if value in [1.5259021896696368e-05, -1.5259021896696368e-05]: # Idle
+            #     pydirectinput.keyUp("a", _pause=False)
+            #     pydirectinput.keyUp("d", _pause=False)
+            #
+            # elif 0 < value < 1: # Rudder Right
+            #     pydirectinput.keyDown("d", _pause=False)
+            #
+            # elif -1 < value < 0: # Rudder Left
+            #     pydirectinput.keyDown("a", _pause=False)
     else:
         pydirectinput.mouseUp(button="right", _pause=False)
         if ground_rudder == "Rudder":
