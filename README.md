@@ -42,6 +42,8 @@ Great question. I'll do my best to explain it:
 - Engine 1&2 Switch: Activates throttle control for Throttle 1 & 2 respectively.
 - Throttle: Both throttles work intertwined - if you push only Throttle 1 to 100% and are in a Twin-engine state, the throttle will go to 50% in-game.
   - Note: Turning off an engine switch mid-flight in a twin-engine state will reduce throttle power by 50%.
+- Pushing Back: YES, going into the reverse detent enables pushback, max 32% on the ground, 8% with parking brake. 100% max when airborne depending on spoiler configuration.
+  - IMPORTANT: The plane WILL move forward without any applied throttle if engines are on! Ensure parking brake is on and only disable when in the reverse detent.
 
 ## Other
 If you don't like something, e.g. a default setting, the maximum taxi speed on the ground, or the throttle % detents, then you can easily edit this inside `joystick-movement.py`.
