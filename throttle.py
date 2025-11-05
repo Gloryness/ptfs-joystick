@@ -6,7 +6,7 @@ sct = mss()
 
 templates = []
 for i in range(0, 101):
-    templates.append(cv.imread(f'templates/{i:02}.png')[:, :, 0])
+    templates.append(cv.imread(f'templates/{i:02}.jpg')[:, :, 0])
 
 def get_current_throttle():
     sct_img = sct.grab((898, 89, 987, 102))
@@ -15,8 +15,7 @@ def get_current_throttle():
     thresh[:, :30] = 0
     thresh[:, 61:] = 0
 
-    results = [np.count_nonzero(cv.bitwise_xor(thresh, template)) for template in templates]
-
+    results = [cv.matchTemplate(thresh, template, cv.TM_SQDIFF_NORMED) for template in templates]
     return results.index(min(results))
 
 throttle_precision = {
@@ -121,36 +120,3 @@ throttle_precision = {
     99: 3.296,
     100: 3.335
 }
-
-import pydirectinput
-import threading
-import time
-
-event = threading.Event()
-current = 0
-
-def increase_throttle(value):
-    duration = throttle_precision[value]
-    while not event.is_set():
-        pydirectinput.keyDown("w", _pause=False)
-        event.wait(duration)
-        break
-
-    pydirectinput.keyUp("w", _pause=False)
-    print("All done!")
-    # perform any cleanup here
-    event.clear()
-    time.sleep(0.1)
-    print(f"Current Throttle: {get_current_throttle()}%")
-
-def interrupt_throttle():
-    import time
-    time.sleep(throttle_precision[10])
-    event.set()
-
-if __name__ == '__main__':
-    time.sleep(1.5)
-
-    thread = threading.Thread(target=interrupt_throttle)
-    thread.start()
-    increase_throttle(10)

@@ -34,7 +34,7 @@ quadrant.open()
 default_x = 1920 // 2
 min_x = 120
 max_x = 1800
-default_y = 574
+default_y = 580
 min_y = 80
 max_y = 1000
 
@@ -68,8 +68,10 @@ Jets:
 """
 
 ############################################################
-max_ground_taxi = 15
-throttle_detents = [50, 80, 100]
+max_pushback = 32
+max_ground_taxi = 20
+throttle_detents = [55, 80, 100] # A320
+# throttle_detents = [52, 80, 100] # A380
 # throttle_detents = [35, 60, 100]
 ############################################################
 
@@ -243,7 +245,7 @@ def on_joybutton_press(joystick, button):
             elif needed_throttle >= 0:
                 needed_throttle = 0
             elif needed_throttle < 0:
-                needed_throttle = -round((8 / 100) * abs(needed_throttle))
+                needed_throttle = -round((8 / max_pushback) * abs(needed_throttle))
 
     elif button == 20:  # Landing Gear Up
         print(f"{WHITE}[{YELLOW}CONFIG{WHITE}] {BRIGHT}{CYAN}Landing gear UP.{RESET}")
@@ -280,7 +282,7 @@ def on_joybutton_release(joystick, button):
                     throttle = throttle_1_percentage
 
                 if throttle < 0:
-                    throttle = -round((32 / 100) * abs(throttle))
+                    throttle = -round((max_pushback / 100) * abs(throttle))
 
     elif button == 3: # Engine 2 cutoff
         if engines[1] is True:
@@ -302,7 +304,7 @@ def on_joybutton_release(joystick, button):
                     throttle = throttle_1_percentage
 
                 if throttle < 0:
-                    throttle = -round((32 / 100) * abs(throttle))
+                    throttle = -round((max_pushback / 100) * abs(throttle))
 
     elif button == 7: # MODE NORM
         print(f"{WHITE}[{DARK_RED}IMPORTANT{WHITE}] {BRIGHT}{CYAN}MODE NORM.{RESET}")
@@ -320,7 +322,7 @@ def on_joybutton_release(joystick, button):
                 throttle = throttle_1_percentage
 
             if throttle < 0:
-                throttle = -round((32 / 100) * abs(throttle))
+                throttle = -round((max_pushback / 100) * abs(throttle))
 
             if throttle >= 0 and throttle <= max_ground_taxi:
                 throttle = max_ground_taxi
@@ -494,19 +496,19 @@ def on_joyaxis_motion(joystick, axis, value):
             elif throttle >= 0:
                 throttle = 0
             elif throttle < 0:
-                throttle = -round((8 / 100) * abs(throttle))
+                throttle = -round((8 / max_pushback) * abs(throttle))
         else:
             if throttle >= 0 and throttle <= max_ground_taxi:
                 throttle = max_ground_taxi
             elif throttle < 0:
-                throttle = -round((32 / 100) * abs(throttle))
+                throttle = -round((max_pushback / 100) * abs(throttle))
     elif state == "Airborne":
         if throttle > 0 and throttle <= 10:
             throttle -= round((throttle/100) * current_spoiler_configuration)
         elif throttle > 10:
             throttle -= round((10 / 100) * current_spoiler_configuration)
         elif throttle < 0:
-            pushback_value = 32
+            pushback_value = max_pushback
 
             pushback_value += round((68 / 100) * current_spoiler_configuration)
 
@@ -531,12 +533,12 @@ def on_joybutton_press(joystick, button):
                 elif needed_throttle >= 0:
                     needed_throttle = 0
                 elif needed_throttle < 0:
-                    needed_throttle = -round((8 / 100) * abs(needed_throttle))
+                    needed_throttle = -round((8 / max_pushback) * abs(needed_throttle))
             else:
                 if needed_throttle >= 0 and needed_throttle <= max_ground_taxi:
                     needed_throttle = max_ground_taxi
                 elif needed_throttle < 0:
-                    needed_throttle = -round((32 / 100) * abs(needed_throttle))
+                    needed_throttle = -round((max_pushback / 100) * abs(needed_throttle))
 
         print(f"{BLUE}Switching to aircraft control state: {MAGENTA}{state}{RESET}")
     elif button == 1:
