@@ -18,7 +18,7 @@ It's the source code & template folder bundled into a .zip folder.
   - `pydirectinput`
   - `pyglet`
 - Run in the command line (this is important) with `python joystick-movement.py` or `py joystick-movement.py`.
-- If you run it by double-clicking, it'll run without a window, and you'll be unable to Ctrl+C to exit - use task manager to terminate the Python process in this event.
+  - If you run it by double-clicking, it'll run without a window, and you'll be unable to Ctrl+C to exit - use task manager to terminate the Python process in this event.
 
 # HOW DO I USE THIS?
 Great question. I'll do my best to explain it:
