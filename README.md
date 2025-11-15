@@ -10,7 +10,7 @@ It's the source code & template folder bundled into a .zip folder.
 # Requirements
 - [Python 3.8.2](https://www.python.org/downloads/release/python-382/)
 - Modules (install with pip - `pip install [module_name]`):
-  - `python-mss`
+  - `mss`
   - `numpy`
   - `opencv-python`
   - `colorama`
