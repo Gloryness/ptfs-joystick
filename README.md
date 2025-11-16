@@ -10,13 +10,13 @@ It's the source code & template folder bundled into a .zip folder.
 # Requirements
 - [Python 3.8.2](https://www.python.org/downloads/release/python-382/)
 - Modules (install with pip - `pip install [module_name]`):
-  - `mss`
-  - `numpy`
-  - `opencv-python`
-  - `colorama`
-  - `pyautogui`
-  - `pydirectinput`
-  - `pyglet`
+  - `mss==6.1.0`
+  - `numpy==1.24.3`
+  - `opencv-python==4.8.0.76`
+  - `colorama==0.4.6`
+  - `pyautogui==0.9.52`
+  - `pydirectinput==1.0.4`
+  - `pyglet==2.0.9`
 - Run in the command line (this is important) with `python joystick-movement.py` or `py joystick-movement.py`.
   - If you run it by double-clicking, it'll run without a window, and you'll be unable to Ctrl+C to exit - use task manager to terminate the Python process in this event.
 
